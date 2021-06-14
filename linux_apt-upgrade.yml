@@ -1,0 +1,24 @@
+---
+ - hosts: ubuntu
+   gather_facts: true
+   tasks:
+   - name: Check and update
+     block:
+       - name: Install all updates
+         apt:
+             update_cache: yes
+             upgrade: dist
+             autoremove: yes
+             autoclean: yes
+         register: update_results
+       - name: Update results
+         debug:
+             msg: "Update results: {{ update_results.stdout_lines }}"
+       - name: Reboot system if required
+         shell: shutdown -r now 'Rebooting to complete system upgrade'
+         args:
+             removes: /var/run/reboot-required
+       - name: Wait for system to become reachable again
+         wait_for_connection:
+             delay: 60
+             timeout: 300
