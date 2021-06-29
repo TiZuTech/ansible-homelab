@@ -1,24 +1,36 @@
 ---
+---
  - hosts: ubuntu
    gather_facts: true
    tasks:
-   - name: Check and update
+   - name: Updating OS
      block:
-       - name: Install all updates
+       - name: Update apt repo and cache
          apt:
              update_cache: yes
-             upgrade: dist
+             force_apt_get: yes
+             cache_valid_time: 3600
+
+       - name: Upgrade all packages
+         apt: 
+             upgrade=dist 
+             force_apt_get=yes
+  
+       - name: Clean up
+         apt:
              autoremove: yes
-             autoclean: yes
-         register: update_results
-       - name: Update results
-         debug:
-             msg: "Update results: {{ update_results.stdout_lines }}"
-       - name: Reboot system if required
-         shell: shutdown -r now 'Rebooting to complete system upgrade'
-         args:
-             removes: /var/run/reboot-required
-       - name: Wait for system to become reachable again
-         wait_for_connection:
-             delay: 60
-             timeout: 300
+             autoclean: yes      
+
+       - name: Check if a reboot is needed
+         register: reboot_required_file
+         stat: path=/var/run/reboot-required get_md5=no
+
+       - name: Rebooting the server if kernel updated
+         reboot:
+           msg: "Reboot initiated by Ansible for kernel updates"
+           connect_timeout: 5
+           reboot_timeout: 300
+           pre_reboot_delay: 0
+           post_reboot_delay: 30
+           test_command: uptime
+         when: reboot_required_file.stat.exists
