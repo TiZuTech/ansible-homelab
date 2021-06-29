@@ -1,0 +1,51 @@
+---
+   - name: Hardening sshd
+     block:
+       - name: Editing sshd config
+         lineinfile:
+           dest: "/etc/ssh/sshd_config"
+           regexp: "{{ item.regexp | default(omit) }}"
+           line: "{{ item.line }}"
+           state: "{{ item.state | default('present') }}"
+           validate: "sshd -t -f %s"
+         with_items:
+           - line: "Protocol 2"
+           - line: "Protocol 1"
+             state: "absent"
+           - line: "RSAAuthentication yes"
+             state: "absent"
+           - regexp: "^Port\ "
+             line: "Port {{ ssh_port }}"
+           - regexp: "^PermitRootLogin\ "
+             line: "PermitRootLogin no"
+           - regexp: "^PasswordAuthentication\ "
+             line: "PasswordAuthentication no"
+           - regexp: "^PermitEmptyPasswords\ "
+             line: "PermitEmptyPasswords no"
+           - regexp: "^StrictModes\ "
+             line: "StrictModes yes"
+           - regexp: "^IgnoreRhosts\ "
+             line: "IgnoreRhosts yes"
+           - regexp: "^RhostsAuthentication\ "
+             line: "RhostsAuthentication no"
+           - regexp: "^RhostsRSAAuthentication\ "
+             line: "RhostsRSAAuthentication no"
+           - regexp: "^ClientAliveInterval\ "
+             line: "ClientAliveInterval 300"
+           - regexp: "^ClientAliveCountMax\ "
+             line: "ClientAliveCountMax 0"
+           - regexp: "^AllowTcpForwarding\ "
+             line: "AllowTcpForwarding no"
+           - regexp: "^X11Forwarding\ "
+             line: "X11Forwarding no"
+           - regexp: "^KexAlgorithms\ "
+             line: "KexAlgorithms curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
+           - regexp: "^Ciphers\ "
+             line: "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+           - regexp: "^MACs\ "
+             line: "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
+
+       - name: Reload sshd
+         service:
+           name: sshd
+           state: reloaded

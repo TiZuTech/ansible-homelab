@@ -1,0 +1,7 @@
+---
+   - name: Install Hyper-V Linux Azure Kernel
+     block:
+     - name: Install packages
+       apt:
+         name: ['linux-azure']
+         state: present

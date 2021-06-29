@@ -1,0 +1,37 @@
+---
+   - name: Create users and groups
+     block:
+       - name: Create {{ create_group }} group
+         group:
+              name: "{{ create_group }}"
+              state: present
+       - name: Create ansible group
+         group:
+              name: ansible
+              state: present
+       - name: Create {{ create_user }} user
+         user:
+              name: "{{ create_user }}"
+              shell: /bin/bash
+              groups: "{{ create_group }},adm,cdrom,sudo,dip,plugdev,lxd"
+       - name: Add {{ create_user }} user to the sudoers
+         copy:
+              dest: "/etc/sudoers.d/{{ create_user }}"
+              content: "{{ create_user }}  ALL=(ALL)  NOPASSWD: ALL"
+       - name: Deploy SSH Key to {{ create_user }} user
+         authorized_key: user={{ create_user }}
+                         key="{{ lookup('file', '{{ ssh_key_location }}') }}"
+                         state=present
+       - name: Create ansible user
+         user:
+              name: ansible
+              shell: /bin/bash
+              groups: ansible,adm,cdrom,sudo,dip,plugdev,lxd
+       - name: Add ansible user to the sudoers
+         copy:
+              dest: "/etc/sudoers.d/ansible"
+              content: "ansible  ALL=(ALL)  NOPASSWD: ALL"
+       - name: Deploy SSH Key to ansible user
+         authorized_key: user=ansible
+                         key="{{ lookup('file', '{{ ssh_key_location }}') }}"
+                         state=present

@@ -1,0 +1,5 @@
+create_user: tizu
+create_group: tizu
+ssh_key_location: ~/.ssh/id_ed25519.pub
+ssh_port: 22
+ssh_permit_root_login: false

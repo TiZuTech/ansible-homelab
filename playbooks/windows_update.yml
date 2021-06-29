@@ -11,9 +11,9 @@
             - SecurityUpdates
             - UpdateRollups
             - Updates
-            - DefinitionUpdates
+            - DefinitionUpdates 
            reboot: yes
-           log_path:  C:/ansible_windows_updates.log
+           log_path:  C:/ansible_windows_updates.log        
          register: update_results
        - name: Update results
          debug:

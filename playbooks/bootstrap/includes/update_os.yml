@@ -1,7 +1,4 @@
 ---
- - hosts: ubuntu
-   gather_facts: true
-   tasks:
    - name: Updating OS
      block:
        - name: Update apt repo and cache
@@ -24,7 +21,7 @@
          register: reboot_required_file
          stat: path=/var/run/reboot-required get_md5=no
 
-       - name: Rebooting the server if kernel updated
+       - name: Rebooting the server if the kernel is updated
          reboot:
            msg: "Reboot initiated by Ansible for kernel updates"
            connect_timeout: 5
