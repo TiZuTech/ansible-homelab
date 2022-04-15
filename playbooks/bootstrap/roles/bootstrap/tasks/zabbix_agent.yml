@@ -1,0 +1,54 @@
+---
+   - name: Install Zabbix Agent
+     block:
+     - name: Download Zabbix deb file
+       get_url:
+         url: https://repo.zabbix.com/zabbix/6.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.0-1+ubuntu20.04_all.deb
+         dest: /tmp/zabbix-release_6.0-1+ubuntu20.04_all.deb
+
+     - name: Install Zabbix deb
+       apt: deb="/tmp/zabbix-release_6.0-1+ubuntu20.04_all.deb"
+
+     - name: Install Zabbix Agent
+       apt:
+         name: zabbix-agent2
+         state: latest
+         update_cache: yes
+
+     - name: Enable Zabbix Agent service
+       systemd:
+         name: zabbix-agent2
+         enabled: yes
+         masked: no
+
+     - name: Editing Zabbix Agent conf
+       lineinfile:
+         dest: "/etc/zabbix/zabbix_agent2.conf"
+         regexp: "{{ item.regexp | default(omit) }}"
+         line: "{{ item.line }}"
+         state: "{{ item.state | default('present') }}"
+       with_items:
+         - regexp: "^Hostname="
+           line: "Hostname={{ ansible_hostname }}"
+           state: "absent"
+         - regexp: "^Server="
+           line: "Server={{ zabbix_server }}"
+         - regexp: "^ServerActive="
+           line: "Server={{ zabbix_server }}" 
+
+     - name: Restarting Zabbix Agent Service
+       systemd: state=restarted name=zabbix-agent2    
+ 
+     - name: Check if a reboot is needed
+       register: reboot_required_file
+       stat: path=/var/run/reboot-required get_md5=no
+
+     - name: Rebooting the server if the kernel is updated
+       reboot:
+         msg: "Reboot initiated by Ansible for kernel updates"
+         connect_timeout: 5
+         reboot_timeout: 300
+         pre_reboot_delay: 0
+         post_reboot_delay: 30
+         test_command: uptime
+       when: reboot_required_file.stat.exists

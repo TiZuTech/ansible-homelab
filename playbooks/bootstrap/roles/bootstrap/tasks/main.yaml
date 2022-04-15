@@ -1,0 +1,14 @@
+- name: Creating users and groups with ssh keys
+  include_tasks: users.yml
+
+- name: Updating OS
+  include_tasks: update_os.yml
+
+- name: Installing VMWare Tools
+  include_tasks: open-vm-tools.yml
+
+- name: Installing Zabbix Agent
+  include_tasks: zabbix_agent.yml
+
+- name: Hardening sshd
+  include_tasks: sshd.yml
